@@ -67,4 +67,11 @@ resource "aws_autoscaling_group" "app_asg" {
     id = aws_launch_template.app_lt.id
     version = "$Latest"
   }
+
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50 # Garde au moins la moitié des serveurs en ligne pendant la mise à jour
+    }
+  }
 }
