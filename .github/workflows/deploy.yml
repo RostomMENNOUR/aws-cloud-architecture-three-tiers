@@ -1,0 +1,49 @@
+name: "CI/CD 3-Tiers Architecture"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: "Build and Deploy to AWS"
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_REGION: "us-east-1"
+
+    steps:
+      - name: 1. Récupération du code source
+        uses: actions/checkout@v3
+
+      - name: 2. Obtenir le Git SHA (Identifiant unique)
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: 3. Créer l'archive de l'application
+        # Zip tous les fichiers sauf les dossiers Git et Terraform
+        run: |
+          zip -r app-${{ env.sha_short }}.zip . -x "*.git*" -x "*.terraform*" -x "*.tf"
+
+      - name: 4. Envoyer l'archive sur Amazon S3
+        # REMPLACEZ "VOTRE_BUCKET_APP_CODE" PAR VOTRE VRAI NOM DE BUCKET S3
+        run: |
+          aws s3 cp app-${{ env.sha_short }}.zip s3://portfolio-architecture-project-app-dev/releases/app-${{ env.sha_short }}.zip
+
+      - name: 5. Installation de Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: 6. Terraform Init
+        run: terraform init
+
+      - name: 7. Terraform Plan
+        run: terraform plan -var="app_version=${{ env.sha_short }}" -out=tfplan
+
+      - name: 8. Terraform Apply
+        run: terraform apply -auto-approve tfplan
