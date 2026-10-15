@@ -1,0 +1,21 @@
+terraform {
+
+  backend "s3" {
+    bucket = "portfolio-architecture-project-state-dev"
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+    dynamodb_table = "terraform-state-lock"
+    encrypt = true
+  }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "6.66.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+}

@@ -1,0 +1,38 @@
+#!/bin/bash -xe
+
+# 1. Mise à jour et installation des dépendances (mariadb105 installe le client mysql)
+dnf update -y
+dnf install -y nodejs unzip npm awscli mariadb105
+
+# 2. Création du dossier avec le bon utilisateur (ec2-user)
+APP_DIR="/home/ec2-user/app"
+mkdir -p $APP_DIR
+cd $APP_DIR
+
+aws s3 cp s3://${bucket_name}/releases/app-${app_version}.zip ./code.zip
+unzip code.zip
+npm install
+npm install aws-sdk
+
+# 4. Initialisation de la base de données
+mysql -h ${rds_endpoint} -u ${db_user} -p"${db_password}" -e "
+CREATE DATABASE IF NOT EXISTS appdb;
+USE appdb;
+CREATE TABLE IF NOT EXISTS students(
+  id INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  city VARCHAR(255) NOT NULL,
+  state VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(100) NOT NULL,
+  PRIMARY KEY ( id )
+);"
+
+# 5. Lancement de l'application Node.js
+export DB_SECRET_NAME="${secret_name}"
+export APP_PORT=80
+export AWS_REGION="${region}"
+
+# Utilisation de nohup pour s'assurer que Node.js ne se coupe pas à la fin du script bash
+nohup npm start > /var/log/node-app.log 2>&1 &
