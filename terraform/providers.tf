@@ -19,3 +19,8 @@ terraform {
 provider "aws" {
   region = var.aws_region
 }
+
+output "alb_url" {
+  description = "URL publique de l'Application Load Balancer"
+  value       = "http://${aws_lb.app_alb_3-tiers.dns_name}"
+}

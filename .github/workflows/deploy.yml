@@ -33,7 +33,7 @@ jobs:
       - name: 4. Envoyer l'archive sur Amazon S3
         # REMPLACEZ "VOTRE_BUCKET_APP_CODE" PAR VOTRE VRAI NOM DE BUCKET S3
         run: |
-          aws s3 cp app-${{ env.sha_short }}.zip s3://VOTRE_BUCKET_APP_CODE/releases/app-${{ env.sha_short }}.zip
+          aws s3 cp app-${{ env.sha_short }}.zip s3://portfolio-architecture-project-app-dev/releases/app-${{ env.sha_short }}.zip
 
       - name: 5. Installation de Terraform
         uses: hashicorp/setup-terraform@v2
