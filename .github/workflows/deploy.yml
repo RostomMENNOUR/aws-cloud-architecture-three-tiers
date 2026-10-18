@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-    workflow_dispatch:
+  workflow_dispatch:
     inputs:
       action:
         description: 'Terraform action:'
@@ -30,7 +30,7 @@ jobs:
       - name: 1. Récupération du code source
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Indispensable pour que git log lise l'historique du dossier app
+          fetch-depth: 0
 
       - name: 2. Obtenir le Git SHA du dossier app UNIQUEMENT
         id: vars
@@ -41,7 +41,6 @@ jobs:
         run: zip -r ../app-${{ env.sha_short }}.zip .
 
       - name: 4. Envoyer l'archive sur Amazon S3
-        # REMPLACEZ "VOTRE_BUCKET_APP_CODE" PAR VOTRE VRAI NOM DE BUCKET S3
         run: |
           aws s3 cp app-${{ env.sha_short }}.zip s3://portfolio-architecture-project-app-dev/releases/app-${{ env.sha_short }}.zip
 
@@ -61,7 +60,7 @@ jobs:
       - name: 8. Terraform Apply or Destroy
         working-directory: ./terraform
         run: |
-          if [ "${{ inputs.action }}" == "destroy" ]; then
+          if [ "${{ github.event.inputs.action }}" == "destroy" ]; then
             terraform destroy -var="app_version=destroy" -auto-approve
           else
             terraform apply -auto-approve tfplan
