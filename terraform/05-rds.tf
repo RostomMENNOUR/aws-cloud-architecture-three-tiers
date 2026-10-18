@@ -7,7 +7,7 @@ resource "random_password" "db_password" {
 # 1. Le Secret (Nommage dynamique et rétention intelligente)
 resource "aws_secretsmanager_secret" "db_secret-v2" {
   # Nommage professionnel standardisé (ex: prod/app/db-credentials)
-  name                    = "${var.env}/app/db-credentials-v2"
+  name                    = "${var.env}/app/db-credentials-v3"
   description             = "Identifiants de la base de données RDS pour l'application"
   
   # 30 jours de protection en prod, 0 jour en dev pour faciliter le "terraform destroy" en TP

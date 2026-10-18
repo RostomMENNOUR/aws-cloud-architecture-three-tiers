@@ -4,6 +4,16 @@ on:
   push:
     branches:
       - main
+    workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action:'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 
 jobs:
   deploy:
@@ -48,6 +58,11 @@ jobs:
         working-directory: ./terraform
         run: terraform plan -var="app_version=${{ env.sha_short }}" -out=tfplan
 
-      - name: 8. Terraform Apply
+      - name: 8. Terraform Apply or Destroy
         working-directory: ./terraform
-        run: terraform apply -auto-approve tfplan
+        run: |
+          if [ "${{ inputs.action }}" == "destroy" ]; then
+            terraform destroy -var="app_version=destroy" -auto-approve
+          else
+            terraform apply -auto-approve tfplan
+          fi
